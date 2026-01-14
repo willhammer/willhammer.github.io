@@ -3,10 +3,10 @@
 ## Overview
 When running a game engine on Linux with Wayland, you may encounter a crash during BGFX initialization that looks like this:
 
-\n
+'''
 BX Attempting Xlib surface creation.
 Signal: SIGSEGV (address not mapped to object)
-\n
+'''
 
 This happens even though your system is clearly running Wayland (for example, KDE Plasma on Wayland).
 This article explains:
@@ -40,9 +40,9 @@ On a Wayland system:
 
 This is why you may see:
 
-/n
+'''cpp
 XGetXCBConnection()
-/n
+'''
 
 in the crash stack trace — even though you are running Wayland.
 
@@ -52,7 +52,7 @@ You must explicitly tell BGFX that the window handle is a Wayland handle.
 
 Step 1: Get native Wayland handles from SDL
 
-/n
+'''cpp
 #include <wayland-client.h>
 #include <SDL3/SDL.h>
 #include <bgfx/bgfx.h>
@@ -77,23 +77,22 @@ void Renderer::init(SDL_Window* window)
     if (!display || !surface)
         throw std::runtime_error("Wayland display or surface not available");
 
-/n
+'''
 
 Step 2: Tell BGFX explicitly that this is Wayland
 
-/n
+'''cpp
     bgfx::PlatformData pd{};
     pd.ndt = display;   // native display
     pd.nwh = surface;   // native window
     pd.type = bgfx::NativeWindowHandleType::Wayland; // IMPORTANT
 
     bgfx::setPlatformData(pd);
-/n
+'''
 
 Step 3: Initialize BGFX normally
 
-/n
-
+'''cpp
     bgfx::Init init;
     init.type = bgfx::RendererType::Vulkan;
     init.platformData = pd;
@@ -104,7 +103,7 @@ Step 3: Initialize BGFX normally
     if (!bgfx::init(init))
         throw std::runtime_error("bgfx init failed");
 }
-/n
+'''
 
 ## Why This Works
 
@@ -117,15 +116,15 @@ Step 3: Initialize BGFX normally
 
 Before initializing BGFX:
 
-/n 
-printf("SDL video driver: %s\n", SDL_GetCurrentVideoDriver());
-/n
+'''cpp
+printf("SDL video driver: %s'''", SDL_GetCurrentVideoDriver());
+'''
 
 Expected output:
 
-/n
+'''
 wayland
-/n
+'''
 
 If it prints x11, then SDL is not running on Wayland.
 
@@ -141,6 +140,6 @@ If it prints x11, then SDL is not running on Wayland.
 If BGFX crashes on Wayland and mentions X11:
 - BGFX is guessing the wrong platform
 - Explicitly set:
-/n
+'''cpp
 pd.type = bgfx::NativeWindowHandleType::Wayland;
-/n
+'''
